@@ -1,0 +1,24 @@
+# NodeJS
+build
+node_modules
+coverage
+
+# Editor
+.vscode
+
+# System
+.DS_Store
+
+# Never commit keys to Git!
+keys
+
+# Generated local research artifacts (never commit secrets or proof caches)
+work/
+results/
+.cache/
+*.log
+
+# Local environment secrets
+.env
+.env.*
+!.env.example

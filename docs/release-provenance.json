@@ -1,0 +1,168 @@
+{
+  "schemaVersion": 1,
+  "stage": "source-ci-candidate; final cloud results pending",
+  "upstream": {
+    "url": "https://github.com/anasAlsalol/MedChainPure",
+    "baselineSHA": "95911f7563ac6f07cbefc08f6ad9cd6055c9ed68",
+    "license": "Apache-2.0"
+  },
+  "researchSourceBase": "d6458f854333fb32b63f6c2711b24b82a8b69f7d",
+  "publicDestination": "ahalsaqqa/MedChain-Research",
+  "publication": "controller only; broad review complete, I1 fix scoped review pending",
+  "testedLocalNode": "24.19.0",
+  "cloudNode": "24.19.0",
+  "o1js": "2.2.0",
+  "dependencyLockHash": "3abb0c6b69e8a17c1445785086d04b1fa9599a29ce684c3bed7418eae545451b",
+  "contentManifestHash": "02e8849198a7b0301060a0b7e11571778ff154d663fbfe74672a087770beefc4",
+  "manifest": [
+    {
+      "path": "jest-resolver.cjs",
+      "sha256": "002f8297c87576a10fd7dc2e2e0bfa862dca5f7c2010ead4ae439e83b91fb698"
+    },
+    {
+      "path": "jest.config.js",
+      "sha256": "55cb2663a5189bd1aa3e785d5a7c469f7e221640d862685ef8982f0ff2f84726"
+    },
+    {
+      "path": "package-lock.json",
+      "sha256": "3abb0c6b69e8a17c1445785086d04b1fa9599a29ce684c3bed7418eae545451b"
+    },
+    {
+      "path": "package.json",
+      "sha256": "86dda0b7a073b0892a5a1f76408c701577db58bdefe3ae5537a0e1fbf395c501"
+    },
+    {
+      "path": "src/RegistryContract.ts",
+      "sha256": "5fd34557b91ea2f9dbfbe965ea68de03ccc8527be011f6ab6007b25fe975af1e"
+    },
+    {
+      "path": "src/benchmark.ts",
+      "sha256": "33c5bc09460597451f8fc3538e03c7c94f201d261c9b841d52ca48509f86a119"
+    },
+    {
+      "path": "src/demo.ts",
+      "sha256": "94093f1a6b823078a26b256f4cff27ec8b01310d06595007c316282154d6c516"
+    },
+    {
+      "path": "src/encryption.ts",
+      "sha256": "0fffc74bd4a2013dfd81e6eecd32d38f6da1abf5ea10990d89dd50d60da6b3ac"
+    },
+    {
+      "path": "src/experiments/observations.ts",
+      "sha256": "2db60ffba5c8a958ffd31150d682ccd8c8a75c21b9150871de6982e68a20ffad"
+    },
+    {
+      "path": "src/experiments/runner.ts",
+      "sha256": "bba0e65fb10c1c392df29c6f5763f23ba1f56d04e95f428f465d42409eb55437"
+    },
+    {
+      "path": "src/experiments/scheduler.ts",
+      "sha256": "c79a14163ed615084b584184d0ffca42ad8c19c814d60cf7bbe672bc638380e7"
+    },
+    {
+      "path": "src/fixtures.ts",
+      "sha256": "83e737d1cad26fb17288554459f1d70ee5cbee1a5d17ccf478ea7e772410006c"
+    },
+    {
+      "path": "src/index.ts",
+      "sha256": "bd313a5f405d563e3ba85a122c29666de66b72a71541e7d0651a01399ad0c99f"
+    },
+    {
+      "path": "src/keyring.ts",
+      "sha256": "17ea984fb860358a42eb2be253cb4e19040a3389f3027d5a7534cfbecf4574ea"
+    },
+    {
+      "path": "src/membership.ts",
+      "sha256": "aeb439f1f3b00e2763e3f7e08838a4c1879f7e8d2e60682d2538bc9f64765401"
+    },
+    {
+      "path": "src/records.ts",
+      "sha256": "965657ce778a7ba2425746faddccd49c5ea0fdfeb789749a62bd0e01819f1545"
+    },
+    {
+      "path": "src/registry.ts",
+      "sha256": "e3592ed806d395fc6dd12147f4181adbb96529a85c32812cf6a936797bd05a6d"
+    },
+    {
+      "path": "src/storage.ts",
+      "sha256": "7d907705cdeb4d84b0e5ee2ee7998bd8cca89d28ae8768d1a9d1758b0337e8a4"
+    },
+    {
+      "path": "src/workflow.ts",
+      "sha256": "3ea372d5937d52c57e4417ff3af7bd5f32e36c0378caf05d68b9e025233a5c71"
+    },
+    {
+      "path": "tests/contract.test.ts",
+      "sha256": "1c79cec160b41347d72901ba75dab5416ab6be8988fcbafab06944eb5e59b9d1"
+    },
+    {
+      "path": "tests/encryption.test.ts",
+      "sha256": "c1fb13496870ea4875c85655351649c8972b646ff22d2ab187545fb95ef68360"
+    },
+    {
+      "path": "tests/helpers/pilot-log.ts",
+      "sha256": "e7bc189634cf7ee301c92a246d65aef0b5f664a5703b06c6066bf2765d1cc77e"
+    },
+    {
+      "path": "tests/helpers/pilot-phase.ts",
+      "sha256": "679a907101433643178a7a039a04b032632098bde95c5a314b5a8ec754dc6d38"
+    },
+    {
+      "path": "tests/keyring.test.ts",
+      "sha256": "0633585b297694964ed065750a053ffe279974497509cc77a3acfd3ce8e8c044"
+    },
+    {
+      "path": "tests/membership.test.ts",
+      "sha256": "90ce326f94341c0c66c4cda7acc5f40d14ca2e21df6a42eafe8f4e9edfaf59bd"
+    },
+    {
+      "path": "tests/observations.test.ts",
+      "sha256": "927e6f79fddb5eda0394a276a3d871478f67264bc371ffc194133836090c6668"
+    },
+    {
+      "path": "tests/pilot-log.test.ts",
+      "sha256": "6ab0a8e7149c77400a112df30fa4945227e23bffcdfca3d40b0617600d01e903"
+    },
+    {
+      "path": "tests/pilot-phase.test.ts",
+      "sha256": "055ee8df74cfc18e3deabb6c45507ef5b868d7c4f0a91cec2ae593a4345b6899"
+    },
+    {
+      "path": "tests/real-proofs.test.ts",
+      "sha256": "61c54fddad51d407de8a2697166dca83bb95ccd4c3f93d491a815fe31f9f080b"
+    },
+    {
+      "path": "tests/records.test.ts",
+      "sha256": "bd4bcd57d2def45989656353ff1bc4fbbdf8ff3c9ec0ff435eb3396f964ff4be"
+    },
+    {
+      "path": "tests/registry.test.ts",
+      "sha256": "a45df22f096659c3fbbefac74c762b96fa1762d95bd1d543e4fee4bf30c8cd6a"
+    },
+    {
+      "path": "tests/scheduler.test.ts",
+      "sha256": "73803a0593efcf2bd2e4d8fc4e61162ca5e4d62bd964df150181c25ff202c681"
+    },
+    {
+      "path": "tests/storage.test.ts",
+      "sha256": "25c5a2a6a175eb95e22a068f4ef123541c562907e11ae406d0bb524b1e4dfe4f"
+    },
+    {
+      "path": "tests/workflow.test.ts",
+      "sha256": "edcdccf3a74fc3c7b37100feb6f6472862a93f1027a2cb596cffd6e843ec6724"
+    },
+    {
+      "path": "tsconfig.json",
+      "sha256": "39df78c17eeb9299028e9b1ab9380d2c3700cedc755694696ebcb98570dab62a"
+    }
+  ],
+  "lineEndings": "Manifest hashes use canonical Git LF bytes, matching clean Linux/public export. Historical Windows physical-byte hashes may differ; no old run is relabeled. Pilot test logging/helper and regression changed after broad-review I1; runtime circuits, benchmark source, config and lock are unchanged. No historical run is relabeled.",
+  "actionPinVerification": {
+    "date": "2026-10-14",
+    "method": "Controller verified official releases/latest and git/ref/tags API, direct commit refs",
+    "checkout": "v7.0.1",
+    "setupNode": "v7.1.0",
+    "uploadArtifact": "v7.0.2"
+  },
+  "finalCloudEvidence": null
+}

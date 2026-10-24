@@ -19,7 +19,13 @@ describe('retained experiment observations', () => {
       hostWarmups: 1, hostMeasured: 5, cryptoWarmups: 5, cryptoMeasured: 30,
       proofWarmups: 1, proofMeasured: 5, verifications: 10,
     });
-    expect(protocolFor(true)).toMatchObject({ protocol: 'smoke', reportable: false, sizes: [3], cryptoMeasured: 2, proofMeasured: 1 });
+    expect(protocolFor(false, 'reportable-v2')).toEqual({
+      protocol: 'reportable-v2', reportable: true, sizes: [100, 500, 1000],
+      hostWarmups: 1, hostMeasured: 10, cryptoWarmups: 5, cryptoMeasured: 30,
+      proofWarmups: 1, proofMeasured: 20, verifications: 3, updateWarmups: 1, updateMeasured: 5,
+    });
+    expect(protocolFor(true)).toMatchObject({ protocol: 'smoke', reportable: false, sizes: [3], cryptoMeasured: 2, proofMeasured: 1, updateMeasured: 2 });
+    expect(protocolFor(true, 'reportable-v2').reportable).toBe(false);
   });
 
   it('reserves independent run children without overwriting earlier evidence', async () => {

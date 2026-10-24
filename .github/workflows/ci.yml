@@ -1,18 +1,26 @@
 name: Full local research experiment
 on:
   workflow_dispatch:
+    inputs:
+      protocol:
+        description: Measurement protocol
+        type: choice
+        options: [reportable-v1, reportable-v2]
+        default: reportable-v1
 permissions:
   contents: read
 concurrency:
-  group: medchain-full-benchmark
+  # One group per dispatch, so independent repeated runs can execute on separate runners in parallel.
+  group: medchain-full-benchmark-${{ github.run_id }}
   cancel-in-progress: false
 jobs:
   experiment:
     runs-on: ubuntu-24.04
-    timeout-minutes: 90
+    timeout-minutes: 150
     env:
       CI: 'true'
       MEDCHAIN_REAL_PROOFS: 'true'
+      MEDCHAIN_PROTOCOL: ${{ inputs.protocol }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -45,7 +53,7 @@ jobs:
       - name: Full actual-proof benchmark
         run: |
           set +e
-          node build/src/benchmark.js --seed 20261014 --output work/benchmark-full >work/cloud-logs/benchmark.raw.txt 2>&1
+          node build/src/benchmark.js --seed 20261014 --protocol "${MEDCHAIN_PROTOCOL:-reportable-v1}" --output work/benchmark-full >work/cloud-logs/benchmark.raw.txt 2>&1
           result=$?
           echo "$result" >work/cloud-logs/benchmark.exit.txt
           exit "$result"

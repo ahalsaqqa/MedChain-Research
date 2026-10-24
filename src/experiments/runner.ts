@@ -16,11 +16,27 @@ import { ContentStore } from '../storage.js';
 import { Observation, ObservationWriter, Operation, Phase, PublicParameters, sanitizeError } from './observations.js';
 import { measureOperation, Result, runMembershipTrials, runProofWorkIfSafe } from './scheduler.js';
 
-export function protocolFor(smoke: boolean) {
-  return smoke ? {
+export type ProtocolName = 'reportable-v1' | 'reportable-v2';
+export const PROTOCOL_NAMES: readonly ProtocolName[] = ['reportable-v1', 'reportable-v2'];
+export type Protocol = {
+  protocol: string; reportable: boolean; sizes: number[]; hostWarmups: number; hostMeasured: number;
+  cryptoWarmups: number; cryptoMeasured: number; proofWarmups: number; proofMeasured: number; verifications: number;
+  /** Root-update proofs per dataset; absent means the original single measured proof. */
+  updateWarmups?: number; updateMeasured?: number;
+};
+export function protocolFor(smoke: boolean, name: ProtocolName = 'reportable-v1'): Protocol {
+  if (smoke) return {
     protocol: 'smoke', reportable: false, sizes: [3], hostWarmups: 1, hostMeasured: 1,
     cryptoWarmups: 1, cryptoMeasured: 2, proofWarmups: 0, proofMeasured: 1, verifications: 2,
-  } : {
+    updateWarmups: 0, updateMeasured: 2,
+  };
+  // v2 repeats the proof-heavy slots; v1 stays byte-for-byte the published protocol.
+  if (name === 'reportable-v2') return {
+    protocol: 'reportable-v2', reportable: true, sizes: [100, 500, 1000], hostWarmups: 1, hostMeasured: 10,
+    cryptoWarmups: 5, cryptoMeasured: 30, proofWarmups: 1, proofMeasured: 20, verifications: 3,
+    updateWarmups: 1, updateMeasured: 5,
+  };
+  return {
     protocol: 'reportable-v1', reportable: true, sizes: [100, 500, 1000], hostWarmups: 1, hostMeasured: 5,
     cryptoWarmups: 5, cryptoMeasured: 30, proofWarmups: 1, proofMeasured: 5, verifications: 10,
   };
@@ -85,11 +101,16 @@ const CLOCK_BOUNDARIES = {
 };
 
 /** Always actual proofs. Smoke only reduces workloads and is explicitly nonreportable. */
-export async function runExperiments(options: { outputDir: string; seed: number; proofMode: 'real'; smoke?: boolean }): Promise<void> {
+export async function runExperiments(options: { outputDir: string; seed: number; proofMode: 'real'; smoke?: boolean; protocolName?: ProtocolName }): Promise<void> {
   assert.equal(options.proofMode, 'real', 'benchmark accepts only actual proof mode');
   assert.notEqual(process.env.MEDCHAIN_REAL_PROOFS, 'false', 'actual proofs must be enabled');
   assert(Number.isSafeInteger(options.seed), 'seed must be a safe integer');
-  const protocol = protocolFor(options.smoke === true);
+  const protocol = protocolFor(options.smoke === true, options.protocolName ?? 'reportable-v1');
+  const updateWarmups = protocol.updateWarmups ?? 0, updateMeasured = protocol.updateMeasured ?? 1;
+  const clockBoundaries = updateWarmups + updateMeasured === 1 ? CLOCK_BOUNDARIES : {
+    ...CLOCK_BOUNDARIES,
+    updateProof: `transaction.prove only; ${updateWarmups} warmup and ${updateMeasured} measured proofs per N, each on a freshly prepared authorized local update against the same registry state; only the last measured transaction is signed, sent and finalized; preparation/finalization excluded and separately logged`,
+  };
   const { runId, directory } = createRunDirectory(resolve(options.outputDir));
   const writer = new ObservationWriter(directory);
   const source = provenance();
@@ -106,7 +127,7 @@ export async function runExperiments(options: { outputDir: string; seed: number;
     treeHeight: RECORD_TREE_HEIGHT, verifiedCapacity: RECORD_CAPACITY,
     cache: { relativePath: 'work/proof-cache', filesBefore: filesIn(cachePath).length, filesAfter: null as number | null,
       policy: 'reuse SDK filesystem cache, no forceRecompile; warm/cache-affected compilation; no cold claim' },
-    clockBoundaries: CLOCK_BOUNDARIES,
+    clockBoundaries,
     abortPolicy: 'On first proof/verification/setup failure, preserve sanitized diagnostic and skip remaining heavy proof/verification slots without retries; continue lightweight host/AES/storage datasets when safe. A hard process interruption leaves start events and prior JSONL rows.',
     secrecy: 'Keys/salts/plaintext/witnesses retained only in process; scratch ciphertext removed after saved observations. Only public proofs/verification keys exported. No raw exception messages or stacks.',
     scope: 'Synthetic local feasibility experiment; fixed path length, no production throughput/energy/fraud or network comparison claim',
@@ -247,23 +268,30 @@ export async function runExperiments(options: { outputDir: string; seed: number;
       }
       key.fill(0); prepared.forEach(({ plaintext }) => plaintext.fill(0));
       phaseEvent('registry-update', N);
+      // Every slot proves a freshly prepared update against the same state; only the last is sent.
+      const updateSlots = attempts(updateWarmups, updateMeasured);
+      const skipUpdates = (from: number, reason: 'proof-failure' | 'setup-failure') => {
+        for (const { phase, attempt } of updateSlots.slice(from)) if (phase === 'measured') skip('registry-update-proof', N, phase, attempt, reason);
+      };
       await runProofWorkIfSafe(proofSafety, async () => {
-        const preparedUpdate = await measure('registry-update-prepare', N, 'setup', 1,
-          () => Mina.transaction(administrator!, async () => { await contract!.updateRoot(snapshot.root); }), 0, { boundary: 'local-update-prepare' });
-        if (preparedUpdate.ok) {
-          const proved = await measure('registry-update-proof', N, 'measured', 1, () => preparedUpdate.value.prove(), 0,
+        for (const [index, { phase, attempt }] of updateSlots.entries()) {
+          const preparedUpdate = await measure('registry-update-prepare', N, 'setup', index + 1,
+            () => Mina.transaction(administrator!, async () => { await contract!.updateRoot(snapshot.root); }), 0, { boundary: 'local-update-prepare' });
+          if (!preparedUpdate.ok) { proofSafety.unsafe = true; skipUpdates(index, 'setup-failure'); return; }
+          const proved = await measure('registry-update-proof', N, phase, attempt, () => preparedUpdate.value.prove(), 0,
             { boundary: 'transaction-prove-only' }, (transaction) => {
               assert(transaction.proofs.some((proof) => proof !== undefined), 'update must carry actual proof'); return {};
             });
-          if (proved.ok) {
+          if (!proved.ok) { proofSafety.unsafe = true; skipUpdates(index + 1, 'proof-failure'); return; }
+          if (index === updateSlots.length - 1) {
             const finalized = await measure('registry-update-finalize', N, 'setup', 1, async () => {
               assert.equal((await (await proved.value.sign([administrator!.key]).send()).wait()).status, 'included');
               assert.equal(Mina.getAccount(contract!.address).zkapp!.appState[0].toString(), snapshot.root.toString());
             }, 0, { boundary: 'local-update-finalize' });
             if (!finalized.ok) proofSafety.unsafe = true;
-          } else proofSafety.unsafe = true;
-        } else { proofSafety.unsafe = true; skip('registry-update-proof', N, 'measured', 1, 'setup-failure'); }
-      }, () => { skip('registry-update-proof', N, 'measured', 1, 'proof-failure'); });
+          }
+        }
+      }, () => { skipUpdates(0, 'proof-failure'); });
 
       phaseEvent('membership-proofs', N);
       const id = records[selectedIndex].recordId;

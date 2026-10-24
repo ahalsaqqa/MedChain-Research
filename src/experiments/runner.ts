@@ -57,13 +57,15 @@ export function createScratchDirectory(runDirectory: string): string {
 const sha256 = (bytes: Buffer | string) => createHash('sha256').update(bytes).digest('hex');
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '../../..');
 const cachePath = join(root, 'work', 'proof-cache');
-function filesIn(directory: string): string[] {
+export const REPOSITORY_ROOT = root;
+export const PROOF_CACHE_PATH = cachePath;
+export function filesIn(directory: string): string[] {
   if (!existsSync(directory)) return [];
   return readdirSync(directory, { withFileTypes: true }).flatMap((entry) =>
     entry.isSymbolicLink() ? [] : entry.isDirectory() ? filesIn(join(directory, entry.name)) :
       entry.isFile() ? [join(directory, entry.name)] : []);
 }
-function provenance() {
+export function provenance() {
   // Hash source/configuration, never run data, caches, or secret/ciphertext directories.
   const paths = ['src', 'tests'].flatMap((path) => filesIn(join(root, path)))
     .concat(['package.json', 'package-lock.json', 'tsconfig.json', 'jest.config.js', 'jest-resolver.cjs'].map((path) => join(root, path)))

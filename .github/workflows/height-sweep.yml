@@ -1,0 +1,44 @@
+name: Tree-height experiment
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: medchain-height-sweep-${{ github.run_id }}
+  cancel-in-progress: false
+jobs:
+  height-sweep:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 150
+    env:
+      CI: 'true'
+      MEDCHAIN_REAL_PROOFS: 'true'
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: '24.19.0'
+      - name: Install retained lock
+        run: |
+          mkdir -p work/height-logs
+          npm ci >work/height-logs/install.txt 2>&1
+      - name: Build
+        run: npm run build >work/height-logs/build.txt 2>&1
+      - name: Functional tests, serially
+        run: npm run test:functional -- --runInBand >work/height-logs/functional.txt 2>&1
+      - name: Tree-height sweep with actual proofs
+        run: node build/src/height-benchmark.js --seed 20261014 --output work/height-sweep >work/height-logs/height-benchmark.txt 2>&1
+      - name: Upload public evidence
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: medchain-height-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            work/height-logs/*.txt
+            work/height-sweep/*/metadata.json
+            work/height-sweep/*/observations.jsonl
+            work/height-sweep/*/summaries.json
+          if-no-files-found: error
+          retention-days: 30
